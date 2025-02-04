@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>YouTube Video Search</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f4f4f4;
+        }
+
+        .search-box {
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        input {
+            padding: 10px;
+            width: 300px;
+            font-size: 16px;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+            margin-right: 10px;
+        }
+
+        button {
+            padding: 10px 20px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background-color: #0056b3;
+        }
+
+        .video-container {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 20px;
+            margin-top: 20px;
+            padding-bottom: 20px;
+        }
+
+        .video-item {
+            width: 300px;
+            text-align: center;
+            background-color: #fff;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            padding: 10px;
+            transition: transform 0.3s ease;
+        }
+
+        .video-item:hover {
+            transform: scale(1.05);
+        }
+
+        img {
+            width: 100%;
+            border-radius: 8px;
+            cursor: pointer;
+        }
+
+        h3 {
+            font-size: 16px;
+            margin-top: 10px;
+            font-weight: normal;
+        }
+
+        p {
+            font-size: 14px;
+            color: #555;
+        }
+
+        /* Modal styling */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+
+        .modal-content {
+            position: relative;
+            width: 80%;
+            height: 80%;
+            background-color: white;
+            border-radius: 8px;
+            padding: 10px;
+        }
+
+        .modal iframe {
+            width: 100%;
+            height: 100%;
+        }
+
+        .modal-close {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background-color: #ff0000;
+            color: white;
+            padding: 5px 10px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        .modal-close:hover {
+            background-color: #cc0000;
+        }
+
+    </style>
+</head>
+<body>
+    <h1>YouTube Video Search</h1>
+
+    <!-- Search bar for YouTube videos -->
+    <div class="search-box">
+        <input type="text" id="searchQuery" placeholder="Search for videos...">
+        <button onclick="searchYouTube()">Search</button>
+    </div>
+
+    <!-- Display video results -->
+    <div id="videoResults" class="video-container"></div>
+
+    <!-- Modal for playing video -->
+    <div id="videoModal" class="modal">
+        <div class="modal-content">
+            <button class="modal-close" onclick="closeModal()">X</button>
+            <iframe id="videoPlayer" src="" frameborder="0" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+        </div>
+    </div>
+
+    <script>
+        const apiKey = 'AIzaSyCvrvW2zlQ1KCABFcJvNb0ZF0CLdzZFZoI';
+
+        function searchYouTube() {
+            const query = document.getElementById('searchQuery').value;
+            const url = `https://www.googleapis.com/youtube/v3/search?part=snippet&q=${query}&type=video&key=${apiKey}`;
+
+            fetch(url)
+                .then(response => response.json())
+                .then(data => {
+                    const videoResults = document.getElementById('videoResults');
+                    videoResults.innerHTML = ''; // Clear previous results
+
+                    const videos = data.items;
+                    if (videos.length === 0) {
+                        videoResults.innerHTML = "<p>No results found.</p>";
+                        return;
+                    }
+
+                    videos.forEach(video => {
+                        const videoId = video.id.videoId;
+                        const thumbnail = video.snippet.thumbnails.high.url;
+                        const title = video.snippet.title;
+                        const description = video.snippet.description;
+
+                        // Create video item element
+                        const videoElement = document.createElement('div');
+                        videoElement.classList.add('video-item');
+                        videoElement.innerHTML = `
+                            <img src="${thumbnail}" onclick="playVideo('${videoId}')">
+                            <h3>${title}</h3>
+                            <p>${description}</p>
+                        `;
+                        videoResults.appendChild(videoElement);
+                    });
+                })
+                .catch(error => console.log('Error fetching videos:', error));
+        }
+
+        // Open video in modal
+        function playVideo(videoId) {
+            const modal = document.getElementById('videoModal');
+            const player = document.getElementById('videoPlayer');
+            player.src = `https://www.youtube.com/embed/${videoId}?autoplay=1`;
+            modal.style.display = 'flex';
+        }
+
+        // Close the modal
+        function closeModal() {
+            const modal = document.getElementById('videoModal');
+            const player = document.getElementById('videoPlayer');
+            player.src = '';  // Stop the video when closing the modal
+            modal.style.display = 'none';
+        }
+    </script>
+
+</body>
+</html>
